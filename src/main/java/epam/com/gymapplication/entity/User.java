@@ -1,5 +1,4 @@
-package epam.com.gymapplication.model;
-
+package epam.com.gymapplication.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -28,7 +27,7 @@ public class User {
 
     @Column(name = "is_active")
     @NotNull(message = "isActive switch can not be null")
-    private boolean isActive;
+    private Boolean isActive;
 
     public User() {
 
@@ -105,12 +104,11 @@ public class User {
         this.password = password;
     }
 
-    public boolean isActive() {
+    public Boolean getActive() {
         return isActive;
     }
-
-    public void setActive(boolean active) {
-        isActive = active;
+    public void setActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     @Override
