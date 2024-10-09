@@ -1,46 +1,88 @@
 package epam.com.gymapplication.service;
 
+import epam.com.gymapplication.dao.TraineeRepository;
+import epam.com.gymapplication.dao.TrainerRepository;
 import epam.com.gymapplication.dao.TrainingRepository;
-import epam.com.gymapplication.model.Trainee;
-import epam.com.gymapplication.model.Trainer;
-import epam.com.gymapplication.model.Training;
-import epam.com.gymapplication.model.TrainingType;
+import epam.com.gymapplication.dao.TrainingTypeRepository;
+import epam.com.gymapplication.dto.TrainingDTO;
+import epam.com.gymapplication.entity.Trainee;
+import epam.com.gymapplication.entity.Trainer;
+import epam.com.gymapplication.entity.Training;
+import epam.com.gymapplication.entity.TrainingType;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+
 
 
 @Service
 public class TrainingService {
     private static final Logger logger = LoggerFactory.getLogger(TrainingService.class);
 
-    @Autowired
-    private TrainingRepository trainingRepository;
+    private final TrainingRepository trainingRepository;
+    private final TraineeRepository traineeRepository;
+    private final TrainerRepository trainerRepository;
+    private final TrainingTypeRepository trainingTypeRepository;
 
-
-
-    public List<Training> findTrainingListByTraineeCriteria(String username, LocalDate from, LocalDate to, String trainingTypeName)  {
-        logger.info("Find training list by trainee criteria");
-        return trainingRepository.findTrainingListByTraineeCriteria(username, from, to, trainingTypeName);
+    public TrainingService(TrainingRepository trainingRepository, TraineeRepository traineeRepository,
+                           TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository) {
+        this.trainingRepository = trainingRepository;
+        this.traineeRepository = traineeRepository;
+        this.trainerRepository = trainerRepository;
+        this.trainingTypeRepository = trainingTypeRepository;
     }
 
-    public List<Training> findTrainingListByTrainerCriteria(String username, LocalDate from, LocalDate to, String trainingTypeName)  {
-        logger.info("Find training list by trainer criteria");
-        return trainingRepository.findTrainingListByTraineeCriteria(username, from, to, trainingTypeName);
-    }
 
-    public void addTraining(Trainee trainee, Trainer trainer, TrainingType trainingType) {
+    public void addTraining(TrainingDTO trainingDTO) {
+
+        String traineeUsername = trainingDTO.getTraineeUsername();
+        String trainerUsername = trainingDTO.getTrainerUsername();
+        String trainingName = trainingDTO.getTrainingName();
+        LocalDate trainingDate = trainingDTO.getTrainingDate();
+        Integer trainingDuration = trainingDTO.getTrainingDuration();
+
+        Trainee traineeByUsername = traineeRepository
+                .findByUsername(traineeUsername)
+                .orElseThrow(() ->
+                new EntityNotFoundException("Trainee not found by username"));
+
+        logger.info("Found trainer by username {}", trainerUsername);
+
+        Trainer trainerByUsername = trainerRepository
+                .findByUsername(trainerUsername)
+                .orElseThrow(() ->
+                new EntityNotFoundException("Trainer not found by username"));
+
+        logger.info("Found trainer by username {}", trainerByUsername);
+
+        Training trainingByName = trainingRepository
+                .findByTrainingName(trainingName)
+                .orElseThrow(() ->
+                new EntityNotFoundException("Training not found by name"));
+
+        logger.info("Found training by username {}", trainingByName);
+
+        TrainingType trainingType = trainingTypeRepository
+                .findById(trainingByName.getId())
+                .orElseThrow(() ->
+                new EntityNotFoundException("Training type not found by id"));
+        logger.info("Found training type by id {}", trainingType);
+
+
 
         Training training = new Training();
-        training.setTrainer(trainer);
+        training.setTrainingDuration(trainingDuration);
+        training.setTrainingDate(trainingDate);
         training.setTrainingType(trainingType);
-        training.setTrainee(trainee);
+        training.setTrainer(trainerByUsername);
+        training.setTrainee(traineeByUsername);
+        training.setTrainingName(trainingName);
+
         trainingRepository.save(training);
+
 
     }
 
@@ -48,12 +90,6 @@ public class TrainingService {
     public void saveTraining(Training training) {
         trainingRepository.save(training);
         logger.info("Training saved");
-
-    }
-
-    public void updateTraining(Training training)  {
-        trainingRepository.update(training);
-        logger.info("Training updated");
 
     }
 
@@ -65,25 +101,20 @@ public class TrainingService {
 
     public Training findTrainingById(Long id) {
         logger.info("Found training by id {} ", id);
-        return trainingRepository.findById(id).orElseThrow();
+        return trainingRepository.findById(id).orElseThrow(()
+                -> new EntityNotFoundException("Entity not found by id " + id));
     }
 
 
-    public Optional<Training> findByTrainingName(String trainingName) {
-        Training byTrainingName = trainingRepository.findByTrainingName(trainingName);
-        if (byTrainingName == null) {
-            return Optional.empty();
-        }
+    public Training findByTrainingName(String trainingName) {
         logger.info("Training name found {} ", trainingName);
-        return Optional.of(byTrainingName);
+        return trainingRepository.findByTrainingName(trainingName).orElseThrow(() ->
+                new EntityNotFoundException("Entity not found  by trainingName " + trainingName));
     }
 
-    public Optional<Training> findByTrainingType(String trainingType) {
-        Training byTrainingType = trainingRepository.findByTrainingType(trainingType);
-        if (byTrainingType == null) {
-            return Optional.empty();
-        }
+    public Training findByTrainingType(String trainingType) {
         logger.info("Training type found {} ", trainingType);
-        return Optional.of(byTrainingType);
+        return trainingRepository.findByTrainingType(trainingType).orElseThrow(() ->
+                new EntityNotFoundException("Entity not found by trainingType " + trainingType)) ;
     }
 }

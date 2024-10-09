@@ -4,10 +4,12 @@ CREATE TABLE users (
     lastname VARCHAR (80) NOT NULL,
     username VARCHAR (100) NOT NULL,
     password VARCHAR (10) NOT NULL,
-    is_active BOOLEAN NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (id)
 
 );
+
+
 
 CREATE TABLE trainee (
     id SERIAL4 NOT NULL,
@@ -35,6 +37,14 @@ CREATE TABLE trainer (
 
 );
 
+ALTER TABLE trainer
+    DROP CONSTRAINT trainer_specialization_fkey;
+
+ALTER TABLE trainer
+    ADD CONSTRAINT trainer_specialization_fkey
+        FOREIGN KEY (specialization) REFERENCES training_type (id) ON DELETE CASCADE;
+
+
 CREATE TABLE trainer_trainee (
     trainee_id INT4 NOT NULL,
     trainer_id INT4 NOT NULL,
@@ -58,3 +68,14 @@ CREATE TABLE training (
     FOREIGN KEY (training_type_id) REFERENCES training_type (id)
 
 );
+
+ALTER TABLE training
+    DROP CONSTRAINT training_training_type_id_fkey;
+
+ALTER TABLE training
+    ADD CONSTRAINT training_training_type_id_fkey
+        FOREIGN KEY (training_type_id) REFERENCES training_type (id) ON DELETE CASCADE;
+
+
+
+
