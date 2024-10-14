@@ -1,69 +1,23 @@
 package epam.com.gymapplication.config;
 
-import epam.com.gymapplication.profile.PasswordGenerator;
-import epam.com.gymapplication.profile.UserProfileService;
-import epam.com.gymapplication.service.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 
 @Configuration
-@ComponentScan(basePackages = "epam.com.gymapplication")
+@EnableAutoConfiguration
 public class AppConfig {
 
-    @Bean
-    public RestCallLoggingInterceptor restCallLoggingInterceptor() {
-        return new RestCallLoggingInterceptor();
-    }
-
-
 
     @Bean
-    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
-        return new PersistenceExceptionTranslationPostProcessor();
+    public HealthIndicator postgresTableSizeHealthIndicator(MeterRegistry meterRegistry, JdbcTemplate jdbcTemplate) {
+        return new DatabaseTableHealthIndicator(meterRegistry, jdbcTemplate);
     }
-
-    @Bean
-    public PasswordGenerator passwordGenerator() {
-        return new PasswordGenerator();
-    }
-
-    @Bean
-    public UserProfileService userProfileService() {
-        return new UserProfileService();
-    }
-
-    @Bean
-    public TraineeService traineeService() {
-        return new TraineeService();
-    }
-
-    @Bean
-    public TrainerService trainerService() {
-        return new TrainerService();
-    }
-
-    @Bean
-    public TrainingService trainingService() {
-        return new TrainingService();
-    }
-
-    @Bean
-    public TrainingTypeService trainingTypeService() {
-        return new TrainingTypeService();
-    }
-
-    @Bean
-    public UserService userService() {
-        return new UserService();
-    }
-
-
-
-
 
 
 
