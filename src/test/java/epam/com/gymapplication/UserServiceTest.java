@@ -2,7 +2,7 @@ package epam.com.gymapplication;
 
 
 import epam.com.gymapplication.dao.UserRepository;
-import epam.com.gymapplication.model.User;
+import epam.com.gymapplication.entity.User;
 import epam.com.gymapplication.service.UserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ public class UserServiceTest {
 
 
     private User user;
-    private User user2;
+    private User secondUser;
 
     @BeforeEach
     public void setUp() {
@@ -42,102 +42,53 @@ public class UserServiceTest {
         user.setLastName("Doe");
         user.setActive(true);
 
-        user2 = new User();
-        user2.setId(2L);
-        user2.setUsername("Raul.Gutierrez");
-        user2.setPassword("586glb(-");
-        user2.setFirstName("Raul");
-        user2.setLastName("Gutierrez");
-        user2.setActive(true);
+        secondUser = new User();
+        secondUser.setId(2L);
+        secondUser.setUsername("Raul.Gutierrez");
+        secondUser.setPassword("586glb(-");
+        secondUser.setFirstName("Raul");
+        secondUser.setLastName("Gutierrez");
+        secondUser.setActive(true);
 
     }
 
     @Test
     public void save_withValidData_returnsValidEntity() {
-        when(userRepository.findById(user.getId())).thenReturn(Optional.ofNullable(user));
-
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
         userService.save(user);
 
         User userServiceById = userService.findById(user.getId());
 
         verify(userRepository).save(user);
+
         Assertions.assertEquals(userServiceById, user);
 
     }
 
     @Test
-    public void save_withInvalidValidData_returnsNull() {
-        when(userRepository.findById(user.getId())).thenReturn(null);
+    public void save_withInvalidValidData_returnsEmptyEntity() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
 
         userService.save(user);
 
-        User userServiceById = userService.findById(user.getId());
+        Optional<User> userServiceById = userRepository.findById(user.getId());
 
         verify(userRepository).save(user);
 
-        Assertions.assertNull(userServiceById);
+        Assertions.assertTrue(userServiceById.isEmpty());
 
     }
 
-    @Test
-    public void update_withExistingEntity_updatesEntityDetails() {
-        when(userRepository.findById(user.getId())).thenReturn(Optional.ofNullable(user));
 
-        userService.save(user);
-
-        User userServiceById = userService.findById(user.getId());
-
-
-        user2.setId(user.getId());
-
-        userService.update(user2);
-
-        when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
-
-        User updatedUserById = userService.findById(user2.getId());
-
-
-        verify(userRepository).update(user2);
-        verify(userRepository).save(user);
-
-        Assertions.assertEquals(userServiceById, user);
-        Assertions.assertEquals(updatedUserById, user2);
-    }
-
-    @Test
-    public void update_withInvalidData_returnsNull() {
-        when(userRepository.findById(user.getId())).thenReturn(Optional.ofNullable(user));
-
-        userService.save(user);
-
-        User userServiceById = userService.findById(user.getId());
-
-        user2.setId(user.getId());
-
-        userService.update(user2);
-
-        when(userRepository.findById(15L)).thenReturn(null);
-
-        User updatedUserById = userService.findById(15L);
-
-        verify(userRepository).update(user2);
-        verify(userRepository).save(user);
-
-        Assertions.assertEquals(userServiceById, user);
-        Assertions.assertNull(updatedUserById);
-    }
 
     @Test
     public void findUserById_withExistingId_returnsEntity() {
-        when(userRepository.findById(user.getId())).thenReturn(Optional.ofNullable(user));
-
-        userService.save(user);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
         User userServiceById = userService.findById(user.getId());
 
         verify(userRepository).findById(user.getId());
-        verify(userRepository).save(user);
 
         Assertions.assertEquals(userServiceById, user);
 
@@ -145,66 +96,52 @@ public class UserServiceTest {
 
     @Test
     public void findUserById_withNonExistingId_returnsNull() {
-        when(userRepository.findById(user.getId())).thenReturn(null);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
 
-        userService.save(user);
-
-        User userServiceById = userService.findById(user.getId());
-
+        Optional<User> userServiceById = userRepository.findById(user.getId());
 
         verify(userRepository).findById(user.getId());
-        verify(userRepository).save(user);
 
-        Assertions.assertNull(userServiceById);
+        Assertions.assertTrue(userServiceById.isEmpty());
 
     }
 
     @Test
     public void deleteUser_withValidEntity_returnsValidEntity() {
-        when(userRepository.findById(user.getId())).thenReturn(Optional.ofNullable(user));
-
-        userService.save(user);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
         userService.deleteById(user.getId());
 
-        when(userRepository.findById(user.getId())).thenReturn(null);
+        verify(userRepository).deleteById(user.getId());
 
-        User userServiceById = userService.findById(user.getId());
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
 
-        verify(userRepository).save(user);
-        verify(userRepository).delete(user);
 
-        Assertions.assertNull(userServiceById);
+        Optional<User> deletedUser = userRepository.findById(user.getId());
+        Assertions.assertTrue(deletedUser.isEmpty());
 
     }
 
     @Test
-    public void deleteUser_withInvalidData_returnsNull() {
-        when(userRepository.findById(5L)).thenReturn(null);
+    public void deleteUser_withInvalidData_returnsEmptyEntity() {
+        when(userRepository.findById(5L)).thenReturn(Optional.empty());
 
-        userService.save(user);
+        userService.deleteById(5L);
 
-        User userServiceById = userService.findById(5L);
+        verify(userRepository).deleteById(5L);
 
-        userService.deleteById(user.getId());
+        Optional<User> userById = userRepository.findById(5L);
 
-        verify(userRepository).delete(user);
-        verify(userRepository).save(user);
-
-        Assertions.assertNull(userServiceById);
+        Assertions.assertTrue(userById.isEmpty());
 
     }
 
     @Test
     public void findByFirstName_withExistingData_returnsValidEntity() {
-        when(userRepository.findByFirstName(user.getFirstName())).thenReturn(user);
+        when(userRepository.findByFirstName(user.getFirstName())).thenReturn(Optional.ofNullable(user));
 
-        userService.save(user);
-
-        User userServiceByFirstname = userService.findByFirstname(user.getFirstName()).orElseThrow();
-
+        User userServiceByFirstname = userService.findByFirstname(user.getFirstName());
         verify(userRepository).findByFirstName(user.getFirstName());
-        verify(userRepository).save(user);
 
         Assertions.assertEquals(userServiceByFirstname, user);
 
@@ -212,75 +149,60 @@ public class UserServiceTest {
 
     @Test
     public void findByFirstName_withNonExistingData_returnsNull() {
-        when(userRepository.findByFirstName("George")).thenReturn(null);
+        when(userRepository.findByFirstName("George")).thenReturn(Optional.empty());
 
-        userService.save(user);
-
-        User userServiceByFirstname = userService.findByFirstname("George").orElseThrow();
+        Optional<User> userServiceByFirstname = userRepository.findByFirstName("George");
 
         verify(userRepository).findByFirstName("George");
-        verify(userRepository).save(user);
 
-        //Assertions.assertNull(userServiceByFirstname);
+        Assertions.assertTrue(userServiceByFirstname.isEmpty());
+
+
+
 
     }
 
     @Test
     public void findByLastName_withExistingData_returnsValidEntity() {
-        when(userRepository.findByLastName(user.getLastName())).thenReturn(user);
+        when(userRepository.findByLastName(user.getLastName())).thenReturn(Optional.ofNullable(user));
 
-        userService.save(user);
-
-
-        User userServiceByLastname = userService.findByLastname(user.getLastName()).orElseThrow();
+        User userServiceByLastname = userService.findByLastname(user.getLastName());
 
         verify(userRepository).findByLastName(user.getLastName());
-        verify(userRepository).save(user);
-
         Assertions.assertEquals(userServiceByLastname, user);
     }
 
     @Test
     public void findByLastName_withNonExistingData_returnsNull() {
-        when(userRepository.findByLastName("Bush")).thenReturn(null);
+        when(userRepository.findByLastName("Bush")).thenReturn(Optional.empty());
 
-        userService.save(user);
-
-        User userServiceByLastname = userService.findByLastname("Bush").orElseThrow();
+        Optional<User> userServiceByLastname = userRepository.findByLastName("Bush");
 
         verify(userRepository).findByLastName("Bush");
-        verify(userRepository).save(user);
 
-        Assertions.assertNull(userServiceByLastname);
+        Assertions.assertTrue(userServiceByLastname.isEmpty());
     }
 
     @Test
     public void findByUsername_withExistingData_returnsValidEntity() {
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(user);
+        when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.ofNullable(user));
 
-        userService.save(user);
-
-
-        User userServiceByUsername = userService.findByUsername(user.getUsername()).orElseThrow();
+        User userServiceByUsername = userService.findByUsername(user.getUsername());
 
         verify(userRepository).findByUsername(user.getUsername());
-        verify(userRepository).save(user);
 
         Assertions.assertEquals(userServiceByUsername, user);
     }
 
     @Test
-    public void findByUsername_withNonExistingData_returnsNull() {
-        when(userRepository.findByUsername("George.Bush")).thenReturn(null);
+    public void findByUsername_withNonExistingData_returnsEmptyEntity() {
+        when(userRepository.findByUsername("George.Bush")).thenReturn(Optional.empty());
 
-        userService.save(user);
-
-        User userServiceByUsername = userService.findByUsername("George.Bush").orElseThrow();
+        Optional<User> userServiceByUsername = userRepository.findByUsername("George.Bush");
 
         verify(userRepository).findByUsername("George.Bush");
-        verify(userRepository).save(user);
 
-        Assertions.assertNull(userServiceByUsername);
+        Assertions.assertTrue(userServiceByUsername.isEmpty());
     }
 
 }

@@ -1,11 +1,11 @@
-package epam.com.gymapplication.model;
+package epam.com.gymapplication.entity;
+
 
 import jakarta.persistence.*;
 
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.*;
 
 
 @Entity
@@ -25,7 +25,7 @@ public class Trainer {
     }
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REMOVE})
-    @JoinColumn(name = "specialization", nullable = false, unique = true)
+    @JoinColumn(name = "specialization")
     private TrainingType trainingType;
 
     public TrainingType getTrainingType() {
@@ -37,7 +37,7 @@ public class Trainer {
     }
 
     @OneToOne(cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
-    @JoinColumn(name = "users_id", unique = true, nullable = false)
+    @JoinColumn(name = "users_id")
     private User user;
 
     public User getUser() {
@@ -49,13 +49,13 @@ public class Trainer {
 
 
     @ManyToMany(mappedBy = "trainers", fetch = FetchType.EAGER)
-    private Set<Trainee> trainees = new HashSet<>();
+    private List<Trainee> trainees = new ArrayList<>();
 
-    public Set<Trainee> getTrainees() {
-        return trainees;
-    }
-    public void setTrainees(Set<Trainee> trainees) {
+    public void setTrainees(List<Trainee> trainees) {
         this.trainees = trainees;
+    }
+    public List<Trainee> getTrainees() {
+        return trainees;
     }
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
